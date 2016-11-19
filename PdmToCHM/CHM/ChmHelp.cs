@@ -105,7 +105,7 @@ namespace CHMUtil
         {
             var code = new StringBuilder();
             code.AppendLine("[OPTIONS]");
-            code.AppendLine("CITATION=Made by Chen");//制作人
+            code.AppendLine("CITATION=Made by mj");//制作人
             code.AppendLine("Compatibility=1.1 or later");//版本
             code.AppendLine(@"Compiled file=" + ChmFileName);//生成chm文件路径
             code.AppendLine("Contents file=chm.HHC");//hhc文件路径
