@@ -36,7 +36,7 @@ namespace PDMToCHM
             }
         }
 
-        static List<string> lstPhs = new List<string>();
+        static HashSet<string> lstPhs = new HashSet<string>();
         static string title = string.Empty;
 
 
@@ -53,7 +53,7 @@ namespace PDMToCHM
                 }
             }
             txtMulItem.Text = string.Join("\r\n", lstPhs);
-            title = txtChmName.Text.Trim();
+            title = txtChmName.Text.TrimEnd('.','c', 'h', 'm', 'C', 'H', 'M');
 
             Thread thread = new Thread(CrateCHM);
             thread.IsBackground = true;          
