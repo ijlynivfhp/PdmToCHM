@@ -11,6 +11,7 @@ using System.IO;
 using PdmUtil;
 using CHMUtil;
 using System.Threading;
+using System.Text.RegularExpressions;
 
 namespace PDMToCHM
 {
@@ -53,7 +54,7 @@ namespace PDMToCHM
                 }
             }
             txtMulItem.Text = string.Join("\r\n", lstPhs);
-            title = txtChmName.Text.TrimEnd('.','c', 'h', 'm', 'C', 'H', 'M');
+            title = Regex.Replace(txtChmName.Text, @"(.+)(\.chm)", "$1", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             Thread thread = new Thread(CrateCHM);
             thread.IsBackground = true;          

@@ -158,6 +158,34 @@ namespace CHMUtil
         #endregion
 
         /// <summary>
+        /// 判断磁盘路径下是否安装存在某个文件，最后返回存在某个文件的路径
+        /// </summary>
+        /// <param name="installPaths"></param>
+        /// <param name="installPath"></param>
+        /// <returns></returns>
+        static bool IsInstall(string[] installPaths,out string installPath)
+        {
+            installPath=string.Empty;
+            var driInfos = DriveInfo.GetDrives();
+            foreach (DriveInfo dInfo in driInfos)
+            {
+                if (dInfo.DriveType == DriveType.Fixed)
+                {
+                    foreach (string ipath in installPaths)
+                    {
+                        string path = Path.Combine(dInfo.Name, ipath);
+                        if (File.Exists(path))
+                        {
+                            installPath=path;
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// 编译
         /// </summary>
         /// <returns></returns>
@@ -168,63 +196,67 @@ namespace CHMUtil
             CreateHHC();
             CreateHHK();
             CreateHHP();
-            var program = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            string hhcPath = program + @"\HTML Help Workshop\hhc.exe";
 
-            if (program.IndexOf(" (x86)") <= -1)
-            {
-                if (!File.Exists(hhcPath))
-                {
-                    if (Directory.Exists(program + " (x86)"))
-                    {
-                        hhcPath = program + @" (x86)\HTML Help Workshop\hhc.exe";
-                    }
-                }
-            }
-            if (!File.Exists(hhcPath))
-            {
-                System.Windows.Forms.MessageBox.Show("未安装HTML Help Workshop！", "提示");
-            }
-            var process = new Process();//创建新的进程，用Process启动HHC.EXE来Compile一个CHM文件
-            try
-            {
-                ProcessStartInfo processInfo = new ProcessStartInfo();
-                processInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                processInfo.FileName = hhcPath;  //调入HHC.EXE文件 
-                processInfo.Arguments = "\"{0}\"".FormatString(Path.Combine(SourcePath, "chm.hhp"));
-                processInfo.UseShellExecute = false;
-                processInfo.CreateNoWindow = true;
-                process.StartInfo = processInfo;
-                process.Start();
-                process.WaitForExit(); //组件无限期地等待关联进程退出
-
-                if (process.ExitCode == 0)
-                {
-                    return false;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-            finally
-            {
-                process.Close();
-                //删除编译过程中的文件
-                if (!debug)
-                {
-                    var arr = new string[] { "chm.hhc", "chm.hhp", "chm.hhk" };
-                    foreach (var a in arr)
-                    {
-                        var tmp = Path.Combine(SourcePath, a);
-                        if (File.Exists(tmp))
-                        {
-                            File.Delete(tmp);
-                        }
-                    }
-                }
-            }
+            //编印方法1：使用 hha.dll 
+            string hhpfile = Path.Combine(SourcePath, "chm.hhp");
+            new Hha().Compile(hhpfile);
             return true;
+
+
+
+            //编印方法2：使用 HTML Help Workshop 的 hhc.exe
+            //string hhcPath = string.Empty;
+
+            //string[] installPaths ={
+            //                           @"Program Files (x86)\HTML Help Workshop\hhc.exe",
+            //                           @"Program Files\HTML Help Workshop\hhc.exe"
+            //                      };
+
+            //if (!IsInstall(installPaths,out hhcPath))
+            //{
+            //    System.Windows.Forms.MessageBox.Show("未安装HTML Help Workshop！", "提示");
+            //}           
+
+            //var process = new Process();//创建新的进程，用Process启动HHC.EXE来Compile一个CHM文件
+            //try
+            //{
+            //    ProcessStartInfo processInfo = new ProcessStartInfo();
+            //    processInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            //    processInfo.FileName = hhcPath;  //调入HHC.EXE文件 
+            //    processInfo.Arguments = "\"{0}\"".FormatString(Path.Combine(SourcePath, "chm.hhp"));
+            //    processInfo.UseShellExecute = false;
+            //    processInfo.CreateNoWindow = true;
+            //    process.StartInfo = processInfo;
+            //    process.Start();
+            //    process.WaitForExit(); //组件无限期地等待关联进程退出
+
+            //    if (process.ExitCode == 0)
+            //    {
+            //        return false;
+            //    }
+            //}
+            //catch
+            //{
+            //    return false;
+            //}
+            //finally
+            //{
+            //    process.Close();
+            //    //删除编译过程中的文件
+            //    if (!debug)
+            //    {
+            //        var arr = new string[] { "chm.hhc", "chm.hhp", "chm.hhk" };
+            //        foreach (var a in arr)
+            //        {
+            //            var tmp = Path.Combine(SourcePath, a);
+            //            if (File.Exists(tmp))
+            //            {
+            //                File.Delete(tmp);
+            //            }
+            //        }
+            //    }
+            //}
+            //return true;
         }
         /// <summary>
         /// 反编译

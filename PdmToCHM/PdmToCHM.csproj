@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="CHM\ChmHelp.cs" />
     <Compile Include="CHM\ChmHtmlHelper.cs" />
+    <Compile Include="CHM\Hha.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -84,6 +85,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="DllImport\hha.dll" />
     <Content Include="readme\htmlhelp.exe" />
     <Content Include="readme\readme.txt" />
   </ItemGroup>
