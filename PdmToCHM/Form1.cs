@@ -115,10 +115,11 @@ namespace PDMToCHM
                 c3.Title = title;
                 c3.ChmFileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), c3.Title + ".chm");
                 c3.SourcePath = "tmp";
-                c3.Compile();
-
-                SetMsg("生成成功！文件路径：" + c3.ChmFileName, true);
-
+                bool isOK = c3.Compile();
+                if (isOK)
+                {
+                    SetMsg("生成成功！文件路径：" + c3.ChmFileName, true);
+                }
             }
             catch (Exception ex)
             {

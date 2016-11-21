@@ -105,6 +105,7 @@ namespace CHMUtil
         {
             var code = new StringBuilder();
             code.AppendLine("[OPTIONS]");
+            code.AppendLine("Auto Index=Yes");
             code.AppendLine("CITATION=Made by mj");//制作人
             code.AppendLine("Compatibility=1.1 or later");//版本
             code.AppendLine(@"Compiled file=" + ChmFileName);//生成chm文件路径
@@ -114,8 +115,9 @@ namespace CHMUtil
             code.AppendLine("Default Window=Main");//目标文件窗体控制参数,这里跳转到Windows小节中，与其一致即可
             code.AppendLine("Display compile notes=Yes");//显示编译信息
             code.AppendLine("Display compile progress=Yes");//显示编译进度
-            //code.AppendLine("Error log file=error.Log");//错误日志文件
+            code.AppendLine("Error log file=d:\\error.Log");//错误日志文件
             code.AppendLine("Full-text search=Yes");//是否支持全文检索信息
+            code.AppendLine("Language=0x804 中文(中国)");
             code.AppendLine("Index file=chm.HHK");//hhk文件路径
             code.AppendLine("Title={0}");//CHM文件标题
             //code.AppendLine("Flat=NO");//编译文件不包括文件夹
@@ -123,7 +125,7 @@ namespace CHMUtil
             code.AppendLine();
             code.AppendLine("[WINDOWS]");
             //例子中使用的参数 0x20 表示只显示目录和索引
-            code.AppendLine("Main=\"{0}\",\"chm.hhc\",\"chm.hhk\",\"{1}\",\"{1}\",,,,,0x63520,180,0x104E, [0,0,745,509],0x0,0x0,,,,,0");
+            code.AppendLine("Main=\"{0}\",\"chm.hhc\",\"chm.hhk\",\"{1}\",\"{1}\",,,,20000,0x63520,180,0x104E, [0,0,745,509],0x0,0x0,,,,,0");
             //Easy Chm使用的参数 0x63520 表示目录索引搜索收藏夹
             //code.AppendLine("Main=\"{0}\",\"chm.HHC\",\"chm.HHK\",\"{1}\",\"{1}\",,,,,0x63520,271,0x304E,[0,0,745,509],,,,,,,0");
             code.AppendLine();
@@ -197,66 +199,68 @@ namespace CHMUtil
             CreateHHK();
             CreateHHP();
 
-            //编印方法1：使用 hha.dll 
-            string hhpfile = Path.Combine(SourcePath, "chm.hhp");
-            new Hha().Compile(hhpfile);
-            return true;
+            //编印方法1：使用 hha.dll ,编印出来的是chm文件不支持全文搜索
+            //其他不支持全文索索的情况：http://blog.sina.com.cn/s/blog_628728b60100gw5y.html
+            //string hhpfile = Path.Combine(SourcePath, "chm.hhp");
+            //new Hha().Compile(hhpfile);
+            //return true;
 
 
 
             //编印方法2：使用 HTML Help Workshop 的 hhc.exe
-            //string hhcPath = string.Empty;
+            string hhcPath = string.Empty;
 
-            //string[] installPaths ={
-            //                           @"Program Files (x86)\HTML Help Workshop\hhc.exe",
-            //                           @"Program Files\HTML Help Workshop\hhc.exe"
-            //                      };
+            string[] installPaths ={
+                                       @"Program Files (x86)\HTML Help Workshop\hhc.exe",
+                                       @"Program Files\HTML Help Workshop\hhc.exe"
+                                  };
 
-            //if (!IsInstall(installPaths,out hhcPath))
-            //{
-            //    System.Windows.Forms.MessageBox.Show("未安装HTML Help Workshop！", "提示");
-            //}           
+            if (!IsInstall(installPaths, out hhcPath))
+            {
+                System.Windows.Forms.MessageBox.Show("未安装HTML Help Workshop！", "提示");
+                return false;
+            }
 
-            //var process = new Process();//创建新的进程，用Process启动HHC.EXE来Compile一个CHM文件
-            //try
-            //{
-            //    ProcessStartInfo processInfo = new ProcessStartInfo();
-            //    processInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            //    processInfo.FileName = hhcPath;  //调入HHC.EXE文件 
-            //    processInfo.Arguments = "\"{0}\"".FormatString(Path.Combine(SourcePath, "chm.hhp"));
-            //    processInfo.UseShellExecute = false;
-            //    processInfo.CreateNoWindow = true;
-            //    process.StartInfo = processInfo;
-            //    process.Start();
-            //    process.WaitForExit(); //组件无限期地等待关联进程退出
+            var process = new Process();//创建新的进程，用Process启动HHC.EXE来Compile一个CHM文件
+            try
+            {
+                ProcessStartInfo processInfo = new ProcessStartInfo();
+                processInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                processInfo.FileName = hhcPath;  //调入HHC.EXE文件 
+                processInfo.Arguments = "\"{0}\"".FormatString(Path.Combine(SourcePath, "chm.hhp"));
+                processInfo.UseShellExecute = false;
+                processInfo.CreateNoWindow = true;
+                process.StartInfo = processInfo;
+                process.Start();
+                process.WaitForExit(); //组件无限期地等待关联进程退出
 
-            //    if (process.ExitCode == 0)
-            //    {
-            //        return false;
-            //    }
-            //}
-            //catch
-            //{
-            //    return false;
-            //}
-            //finally
-            //{
-            //    process.Close();
-            //    //删除编译过程中的文件
-            //    if (!debug)
-            //    {
-            //        var arr = new string[] { "chm.hhc", "chm.hhp", "chm.hhk" };
-            //        foreach (var a in arr)
-            //        {
-            //            var tmp = Path.Combine(SourcePath, a);
-            //            if (File.Exists(tmp))
-            //            {
-            //                File.Delete(tmp);
-            //            }
-            //        }
-            //    }
-            //}
-            //return true;
+                if (process.ExitCode == 0)
+                {
+                    return true;
+                }
+            }
+            catch(Exception ex)
+            {
+                return false;
+            }
+            finally
+            {
+                process.Close();
+                //删除编译过程中的文件
+                if (!debug)
+                {
+                    var arr = new string[] { "chm.hhc", "chm.hhp", "chm.hhk" };
+                    foreach (var a in arr)
+                    {
+                        var tmp = Path.Combine(SourcePath, a);
+                        if (File.Exists(tmp))
+                        {
+                            File.Delete(tmp);
+                        }
+                    }
+                }
+            }
+            return true;
         }
         /// <summary>
         /// 反编译
