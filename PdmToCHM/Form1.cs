@@ -123,6 +123,7 @@ namespace PDMToCHM
             }
             catch (Exception ex)
             {
+                LogUtils.LogError(nameof(CrateCHM), Developer.SysDefault, ex);
                 SetMsg(ex.Message, false);
             }
            

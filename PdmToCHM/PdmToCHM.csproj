@@ -55,6 +55,7 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="LogUtils.cs" />
     <Compile Include="Models\ColumnInfo.cs" />
     <Compile Include="Models\PdmKey.cs" />
     <Compile Include="Models\PdmModels.cs" />

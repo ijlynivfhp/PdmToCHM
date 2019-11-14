@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 /*
@@ -187,6 +188,80 @@ namespace CHMUtil
             return false;
         }
 
+
+
+        [DllImport("shell32.dll")]
+
+        public static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
+
+        /// <summary>
+        /// 检测是否安装某个软件，并返回软件的卸载安装路径
+        /// </summary>
+        /// <param name="softName"></param>
+        /// <param name="installPath"></param>
+        /// <returns></returns>
+        public static bool CheckInstall(string softName, string str_exe, out string installPath)
+        {
+            //即时刷新注册表
+            SHChangeNotify(0x8000000, 0, IntPtr.Zero, IntPtr.Zero);
+
+            installPath = string.Empty;
+
+            bool isFind = false;
+            var uninstallNode = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall", false);
+            if (uninstallNode != null)
+            {
+                //LocalMachine_64
+                using (uninstallNode)
+                {
+                    foreach (var subKeyName in uninstallNode.GetSubKeyNames())
+                    {
+                        var subKey = uninstallNode.OpenSubKey(subKeyName);
+                        string displayName = (subKey.GetValue("DisplayName") ?? string.Empty).ToString();
+                        string path = (subKey.GetValue("UninstallString") ?? string.Empty).ToString();
+                        Console.WriteLine(displayName);
+                        if (displayName.Contains(softName) && !string.IsNullOrWhiteSpace(path))
+                        {
+                            installPath = Path.Combine(Path.GetDirectoryName(path), str_exe);
+                            if (File.Exists(installPath))
+                            {
+                                isFind = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            if (!isFind)
+            {
+                //LocalMachine_32
+                uninstallNode = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
+                using (uninstallNode)
+                {
+                    foreach (var subKeyName in uninstallNode.GetSubKeyNames())
+                    {
+                        var subKey = uninstallNode.OpenSubKey(subKeyName);
+                        string displayName = (subKey.GetValue("DisplayName") ?? string.Empty).ToString();
+                        string path = (subKey.GetValue("UninstallString") ?? string.Empty).ToString();
+                        Console.WriteLine(displayName);
+                        if (displayName.Contains(softName) && !string.IsNullOrWhiteSpace(path))
+                        {
+                            installPath = Path.Combine(Path.GetDirectoryName(path), str_exe);
+                            if (File.Exists(installPath))
+                            {
+                                isFind = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            return isFind;
+        }
+
+
         /// <summary>
         /// 编译
         /// </summary>
@@ -210,12 +285,8 @@ namespace CHMUtil
             //编印方法2：使用 HTML Help Workshop 的 hhc.exe
             string hhcPath = string.Empty;
 
-            string[] installPaths ={
-                                       @"Program Files (x86)\HTML Help Workshop\hhc.exe",
-                                       @"Program Files\HTML Help Workshop\hhc.exe"
-                                  };
 
-            if (!IsInstall(installPaths, out hhcPath))
+            if (!CheckInstall("HTML Help Workshop", "hhc.exe", out hhcPath))
             {
                 System.Windows.Forms.MessageBox.Show("未安装HTML Help Workshop！", "提示");
                 return false;
@@ -240,7 +311,9 @@ namespace CHMUtil
                 }
             }
             catch(Exception ex)
-            {
+            { 
+                LogUtils.LogError(nameof(Compile), Developer.SysDefault, ex);
+                System.Windows.Forms.MessageBox.Show("未安装HTML Help Workshop！", "提示");
                 return false;
             }
             finally
