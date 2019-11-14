@@ -55,9 +55,9 @@ public class LogUtils
         string logText = Log.GetModelData(log) + "\r\n----------------------------------------------------------------------------------------------------\r\n";
         string fileName = DateTime.Now.ToString("yyyyMMdd") + ".log";
         string dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log");
-        if (!ZetaLongPaths.ZlpIOHelper.DirectoryExists(dir))
+        if (!Directory.Exists(dir))
         {
-            ZetaLongPaths.ZlpIOHelper.CreateDirectory(dir);
+            Directory.CreateDirectory(dir);
         }
         fileName = Path.Combine(dir, fileName);
         File.AppendAllText(fileName, logText, Encoding.GetEncoding("GBK"));

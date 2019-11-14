@@ -34,6 +34,8 @@ namespace PDMToCHM
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 txtMulItem.Text = string.Join("\r\n", openFileDialog.FileNames);
+
+                txtChmName.Text = Path.GetFileNameWithoutExtension(openFileDialog.FileNames.FirstOrDefault());
             }
         }
 
